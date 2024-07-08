@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.test.mybatis.mapper.UserMapper2">
+    <resultMap id="UserMap" type="com.test.mybatis.model.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="address" property="address"/>
+        <result column="mobile" property="phone"/>
+        <result column="favorites" property="favorites" typeHandler="com.test.mybatis.typehandler.List2VarcharHandler"/>
+    </resultMap>
+
+    <resultMap id="UserBookMap" type="com.test.mybatis.model.User" extends="UserMap">
+        <association property="book" javaType="com.test.mybatis.model.Book" resultMap="com.test.mybatis.mapper.BookMapper.BookMap">
+        </association>
+    </resultMap>
+
+    <resultMap id="UserWithBook" type="com.test.mybatis.model.User" extends="UserMap">
+        <collection property="books" ofType="com.test.mybatis.model.Book" columnPrefix="book_" resultMap="com.test.mybatis.mapper.BookMapper.BookMap">
+
+        </collection>
+    </resultMap>
+
+    <select id="getUserById" resultMap="UserMap">
+        select * from user where id = #{id};
+    </select>
+
+    <select id="getAllUser" resultMap="UserMap">
+        select * from user;
+    </select>
+
+    <insert id="insertUser" parameterType="com.test.mybatis.model.User" useGeneratedKeys="true" keyProperty="id">
+        insert into user(username,address,mobile) values (#{username},#{address},#{phone});
+    </insert>
+    
+    <delete id="deleteById">
+        delete from user where id= #{id};
+    </delete>
+    
+    <update id="updateUserById">
+        update user set username = #{username} where id = #{id};
+    </update>
+
+    <select id="getUserPage" resultMap="UserMap">
+        select * from user
+        <if test="start !=null and size !=null ">
+            limit #{start},#{size};
+        </if>
+    </select>
+
+    <select id="getUserByCondition" resultMap="UserMap" parameterType="com.test.mybatis.model.User">
+        select * from user
+        <where>
+            <if test="username !='' and username !=null ">
+              and  username = #{username}
+            </if>
+            <if test="phone !='' and phone !=null ">
+              and  mobile = #{phone}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateUser" parameterType="com.test.mybatis.model.User">
+        update user
+        <set>
+            <if test=" username!='' and username !=null ">
+                username = #{username},
+            </if>
+            <if test=" phone!='' and phone!=null ">
+                mobile = #{phone},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="getUserByIds" resultMap="UserMap">
+        select * from user where id in
+        <foreach collection="ids" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </select>
+
+    <insert id="addUserBatch" >
+        insert into user(username,address,mobile) values
+        <foreach collection="users" item="user" separator=",">
+            (#{user.username},#{user.address},#{user.phone})
+        </foreach>
+    </insert>
+
+    <select id="getUserById2" resultMap="UserBookMap">
+        select * from user a,book b where a.id = b.uid;
+    </select>
+
+    <select id="getUserWithBooks" resultMap="UserWithBook">
+        SELECT u.*,b.bookname as book_bookname from user u left join book b on u.id = b.uid;
+    </select>
+
+    <insert id="addUserTypeHandler" parameterType="com.test.mybatis.model.User">
+        insert into user(username, address, mobile, favorites)
+        values (#{username}, #{address}, #{phone},
+                #{favorites,typeHandler=com.test.mybatis.typehandler.List2VarcharHandler});
+    </insert>
+
+    <select id="getUserByList" resultMap="UserMap">
+        select * from user
+    </select>
+</mapper>

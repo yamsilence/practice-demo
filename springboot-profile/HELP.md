@@ -1,0 +1,4 @@
+通过spring.profiles.active激活你要使用的配置文件
+
+公共的可以配置到application.properties里，如果自定义的配置文件里没配置，
+则就会使用application.properties里的，例如这里的端口，dev的已经注释了就会使用默认配置文件的
